@@ -915,7 +915,7 @@
     document.getElementById('resultSuccess').style.display = 'none';
     document.getElementById('resultError').style.display = 'none';
 
-    // رابط الـ Web App الخاص بك
+  // رابط الـ Web App الخاص بك
     var scriptUrl = "https://script.google.com/macros/s/AKfycbz0NsTkChx_E0L_BRiHTnD-J2XENKyFezghCAOzz-9tMbd6Wk5xCYHdT9tat_GGshfSvA/exec";
 
     fetch(scriptUrl + "?id=" + id)
@@ -924,11 +924,18 @@
             return response.json();
         })
         .then(data => {
+            console.log("Data received:", data); // تأكد من رؤية البيانات في الكونسول
             document.getElementById('loadingState').classList.remove('visible');
-            showResult(data); 
+            
+            // تحقق إذا كانت البيانات المستلمة null أو فارغة
+            if (!data || data === null) {
+                showResult(null); // سيعرض "لم يتم العثور على الشهادة"
+            } else {
+                showResult(data); 
+            }
         })
         .catch(err => {
-            console.error('Error:', err);
+            console.error('Fetch error:', err);
             document.getElementById('loadingState').classList.remove('visible');
             showError(err);
         });
