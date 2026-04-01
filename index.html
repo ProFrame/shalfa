@@ -882,81 +882,98 @@
 
 </div>
 
+
 <script>
-// 1. طريقة قراءة الـ ID من الرابط في المواقع العادية (GitHub)
+  // 1. دالة قراءة المعاملات من الرابط (مثل ?id=1001) لضمان الفتح التلقائي
   function getParam(name) {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get(name);
   }
 
-  // 2. التنفيذ عند تحميل الصفحة
+  // 2. التنفيذ الفوري عند تحميل الصفحة
   window.onload = function() {
-    const idFromUrl = getParam('id'); // سيقرأ الرقم من ?id=1001
-    
+    const idFromUrl = getParam('id');
     if (idFromUrl) {
       document.getElementById('certId').value = idFromUrl;
-      search(); // تنفيذ البحث تلقائياً
+      search(); // تنفيذ البحث تلقائياً إذا وجد ID في الرابط
     }
   };
 
-  // 3. دالة البحث المحدثة (تأكد من وجود الرابط الصحيح)
-function search() {
-  var id = document.getElementById('certId').value.trim();
+  // 3. دالة البحث الرئيسية (تبحث في ملف الـ JSON المحلي على GitHub)
+  function search() {
+    var id = document.getElementById('certId').value.trim();
+    
+    // التحقق من صحة الإدخال
+    if (!id) {
+        document.getElementById('certId').focus();
+        document.getElementById('certId').style.borderColor = '#E24B4A';
+        setTimeout(() => { document.getElementById('certId').style.borderColor = ''; }, 1500);
+        return;
+    }
 
-  if (!id) return;
+    // تهيئة واجهة التحميل
+    document.getElementById('loadingState').classList.add('visible');
+    document.getElementById('resultSection').classList.remove('visible');
+    document.getElementById('resultSuccess').style.display = 'none';
+    document.getElementById('resultError').style.display = 'none';
 
-  document.getElementById('loadingState').classList.add('visible');
-
-  var script = document.createElement('script');
-
-  var url = "https://script.google.com/macros/s/AKfycbz0NsTkChx_E0L_BRiHTnD-J2XENKyFezghCAOzz-9tMbd6Wk5xCYHdT9tat_GGshfSvA/exec";
-
-  script.src = url + "?id=" + encodeURIComponent(id) + "&callback=handleResponse";
-
-  document.body.appendChild(script);
-}
-
-
-  function handleResponse(data) {
-  document.getElementById('loadingState').classList.remove('visible');
-
-  if (data) {
-    showResult(data);
-  } else {
-    showError();
+    // جلب ملف البيانات data.json من المستودع الخاص بك
+    // ملاحظة: لا حاجة لروابط جوجل هنا، الملف موجود معك على GitHub
+    fetch("data.json")
+      .then(response => {
+        if (!response.ok) throw new Error("قاعدة البيانات غير متوفرة حالياً");
+        return response.json();
+      })
+      .then(allData => {
+        // البحث عن الشهادة داخل المصفوفة (Array)
+        const certificate = allData.find(item => item.id.toString() === id.toString());
+        
+        // إخفاء علامة التحميل وعرض النتيجة
+        document.getElementById('loadingState').classList.remove('visible');
+        showResult(certificate);
+      })
+      .catch(err => {
+        console.error("Fetch Error:", err);
+        document.getElementById('loadingState').classList.remove('visible');
+        showError(err);
+      });
   }
-}
-  
-  
-  function showResult(data) {
-    document.getElementById('loadingState').classList.remove('visible');
-    document.getElementById('resultSection').classList.add('visible');
 
+  // 4. دالة عرض النتائج (نجاح / فشل)
+  function showResult(data) {
+    document.getElementById('resultSection').classList.add('visible');
+    
     if (data) {
+      // ملء بيانات الشهادة في الواجهة
       document.getElementById('resId').innerText = '#' + data.id;
       document.getElementById('resName').innerText = data.name;
       document.getElementById('resCourse').innerText = data.course;
       document.getElementById('resDate').innerText = data.date;
+      
+      // إضافة تاريخ التحقق اليوم بالتقويم الهجري/الميلادي العربي
       document.getElementById('verifyDate').innerText = 'تاريخ التحقق: ' + new Date().toLocaleDateString('ar-SA');
+      
       document.getElementById('resultSuccess').style.display = 'block';
       document.getElementById('resultError').style.display = 'none';
     } else {
+      // إظهار رسالة "لم يتم العثور على الشهادة"
       document.getElementById('resultSuccess').style.display = 'none';
       document.getElementById('resultError').style.display = 'block';
     }
   }
 
+  // 5. دالة معالجة أخطاء الاتصال
   function showError(err) {
-    document.getElementById('loadingState').classList.remove('visible');
     document.getElementById('resultSection').classList.add('visible');
     document.getElementById('resultSuccess').style.display = 'none';
     document.getElementById('resultError').style.display = 'block';
   }
 
+  // 6. تشغيل البحث عند الضغط على Enter في حقل الإدخال
   document.getElementById('certId').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') search();
   });
 </script>
-
+  
 </body>
 </html>
