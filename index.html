@@ -893,26 +893,44 @@
     }
   };
 
-  function search() {
+
+function search() {
     var id = document.getElementById('certId').value.trim();
+    
+    // 1. التحقق من الإدخال (Validation) كما في كودك السابق
     if (!id) {
-      document.getElementById('certId').focus();
-      document.getElementById('certId').style.borderColor = '#E24B4A';
-      setTimeout(() => { document.getElementById('certId').style.borderColor = ''; }, 1500);
-      return;
+        document.getElementById('certId').focus();
+        document.getElementById('certId').style.borderColor = '#E24B4A';
+        setTimeout(() => { document.getElementById('certId').style.borderColor = ''; }, 1500);
+        return;
     }
 
+    // 2. تجهيز واجهة المستخدم (Loading State)
     document.getElementById('loadingState').classList.add('visible');
     document.getElementById('resultSection').classList.remove('visible');
     document.getElementById('resultSuccess').style.display = 'none';
     document.getElementById('resultError').style.display = 'none';
 
-    google.script.run
-      .withSuccessHandler(showResult)
-      .withFailureHandler(showError)
-      .getCertificateData(id);
-  }
+    // 3. رابط الـ Web App الخاص بك (المحدث)
+    var scriptUrl = "https://script.google.com/macros/s/AKfycbz0NsTkChx_E0L_BRiHTnD-J2XENKyFezghCAOzz-9tMbd6Wk5xCYHdT9tat_GGshfSvA/exec";
 
+    // 4. الاتصال بجوجل سكريبت عبر Fetch API
+    fetch(scriptUrl + "?id=" + id)
+        .then(response => response.json())
+        .then(data => {
+            // إخفاء علامة التحميل
+            document.getElementById('loadingState').classList.remove('visible');
+            // استدعاء دالة عرض النتائج التي برمجناها سابقاً
+            showResult(data); 
+        })
+        .catch(err => {
+            document.getElementById('loadingState').classList.remove('visible');
+            showError(err);
+        });
+}
+
+
+  
   function showResult(data) {
     document.getElementById('loadingState').classList.remove('visible');
     document.getElementById('resultSection').classList.add('visible');
