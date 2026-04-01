@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>منصة التحقق من الشهادات</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold: #C9A84C;
+      --gold-light: #E8D08A;
+      --gold-dark: #8B6914;
+      --navy: #0D1B2A;
+      --navy-mid: #1A2F45;
+      --navy-light: #243D57;
+      --cream: #FAF7F2;
+      --cream-dark: #F0EBE0;
+      --text-primary: #0D1B2A;
+      --text-secondary: #4A5568;
+      --text-muted: #8A9BB0;
+      --success: #1A6B3A;
+      --success-bg: #EDF7F1;
+      --success-border: #6FCF97;
+      --error: #9B2335;
+      --error-bg: #FDF2F4;
+      --error-border: #F1AEBA;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Cairo', 'Tajawal', sans-serif;
+      background-color: var(--cream);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ===== BACKGROUND PATTERN ===== */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 40px,
+          rgba(201,168,76,0.04) 40px,
+          rgba(201,168,76,0.04) 41px
+        ),
+        repeating-linear-gradient(
+          -45deg,
+          transparent,
+          transparent 40px,
+          rgba(201,168,76,0.04) 40px,
+          rgba(201,168,76,0.04) 41px
+        );
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page-wrapper {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ===== HEADER ===== */
+    .site-header {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 60%, var(--navy-light) 100%);
+      padding: 0 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .site-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--gold), var(--gold-light), var(--gold), transparent);
+    }
+
+    .header-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 28px 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+   .logo-wrap {
+    /* قمنا بزيادة الحجم لملء المربع الأبيض مع ترك مسافة بسيطة (Padding) */
+    width: 170px;  /* زادت من 72px لتناسب الـ 200px */
+    height: 170px; /* زادت من 72px لتناسب الـ 200px */
+    border-radius: 20px; /* جعل الانحناء أكثر وضوحاً مع الحجم الكبير */
+    border: 3px solid rgba(201,168,76,0.6); /* جعل الإطار الذهبي أكثر سماكة ووضوحاً */
+    background: rgba(201,168,76,0.05); /* لمسة خفيفة جداً من اللون الذهبي للخلفية */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+    .logo-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 6px;
+    }
+
+    .header-text { flex: 1; }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(201,168,76,0.15);
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 20px;
+      padding: 3px 12px;
+      margin-bottom: 8px;
+    }
+
+    .header-badge span {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--gold-light);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .header-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .site-header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.3;
+    }
+
+    .site-header p {
+      font-size: 13px;
+      color: rgba(255,255,255,0.55);
+      margin-top: 4px;
+      font-weight: 400;
+    }
+
+    /* ===== MAIN CONTENT ===== */
+    .main-content {
+      flex: 1;
+      padding: 40px 24px 60px;
+    }
+
+    .content-center {
+      max-width: 620px;
+      margin: 0 auto;
+    }
+
+    /* ===== SEARCH CARD ===== */
+    .search-card {
+      background: #ffffff;
+      border-radius: 20px;
+      border: 1px solid rgba(201,168,76,0.2);
+      padding: 36px 36px 32px;
+      box-shadow:
+        0 1px 3px rgba(13,27,42,0.06),
+        0 8px 32px rgba(13,27,42,0.08),
+        0 0 0 1px rgba(255,255,255,0.8) inset;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .search-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 180px;
+      height: 180px;
+      background: radial-gradient(circle at top right, rgba(201,168,76,0.08), transparent 70%);
+      pointer-events: none;
+    }
+
+    .card-icon-wrap {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .card-icon-wrap::after {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: 15px;
+      border: 1px solid rgba(201,168,76,0.4);
+    }
+
+    .card-icon-wrap svg {
+      width: 26px;
+      height: 26px;
+      fill: none;
+      stroke: var(--gold);
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .search-card h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .search-card p.subtitle {
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    /* ===== INPUT ===== */
+    .input-group {
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    .input-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      letter-spacing: 0.02em;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-wrap svg {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: var(--text-muted);
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      pointer-events: none;
+    }
+
+    #certId {
+      width: 100%;
+      padding: 14px 44px 14px 16px;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 12px;
+      font-family: 'Cairo', sans-serif;
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text-primary);
+      background: var(--cream);
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      outline: none;
+      text-align: right;
+      direction: rtl;
+    }
+
+    #certId::placeholder {
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    #certId:focus {
+      border-color: var(--gold);
+      background: #ffffff;
+      box-shadow: 0 0 0 4px rgba(201,168,76,0.12);
+    }
+
+    /* ===== BUTTON ===== */
+    .btn-search {
+      width: 100%;
+      padding: 15px 24px;
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Cairo', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.15s, box-shadow 0.15s;
+      letter-spacing: 0.02em;
+    }
+
+    .btn-search::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(201,168,76,0.2), transparent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .btn-search:hover::before { opacity: 1; }
+    .btn-search:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(13,27,42,0.25); }
+    .btn-search:active { transform: translateY(0); }
+
+    .btn-search .btn-inner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      position: relative;
+    }
+
+    .btn-search svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: var(--gold-light);
+      stroke-width: 2;
+      stroke-linecap: round;
+    }
+
+    /* ===== LOADING ===== */
+    .loading-state {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 0 20px;
+      gap: 16px;
+    }
+
+    .loading-state.visible { display: flex; }
+
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 3px solid var(--cream-dark);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-state p {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    /* ===== RESULT CARD ===== */
+    .result-section {
+      display: none;
+      margin-top: 24px;
+    }
+
+    .result-section.visible { display: block; animation: slideUp 0.4s ease; }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* SUCCESS */
+    .result-success {
+      background: #ffffff;
+      border-radius: 16px;
+      border: 1px solid var(--success-border);
+      overflow: hidden;
+    }
+
+    .result-header {
+      background: linear-gradient(135deg, #0F4C2A, #1A6B3A);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .result-header-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .result-header-icon svg {
+      width: 22px;
+      height: 22px;
+      fill: none;
+      stroke: #ffffff;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .result-header-text h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .result-header-text p {
+      font-size: 12px;
+      color: rgba(255,255,255,0.7);
+      margin-top: 2px;
+    }
+
+    .result-body {
+      padding: 24px;
+    }
+
+    .cert-id-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+      border-radius: 8px;
+      padding: 8px 16px;
+      margin-bottom: 20px;
+    }
+
+    .cert-id-badge span.label {
+      font-size: 11px;
+      color: rgba(255,255,255,0.6);
+      font-weight: 500;
+    }
+
+    .cert-id-badge span.value {
+      font-size: 14px;
+      color: var(--gold-light);
+      font-weight: 700;
+      font-family: monospace;
+      letter-spacing: 0.08em;
+    }
+
+    .data-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .data-item {
+      background: var(--cream);
+      border-radius: 10px;
+      padding: 14px 16px;
+      border: 1px solid var(--cream-dark);
+    }
+
+    .data-item.full { grid-column: 1 / -1; }
+
+    .data-item .di-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .data-item .di-label svg {
+      width: 12px;
+      height: 12px;
+      fill: none;
+      stroke: var(--text-muted);
+      stroke-width: 2;
+    }
+
+    .data-item .di-value {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .verified-stamp {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--cream-dark);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .verified-stamp .stamp-text {
+      font-size: 12px;
+      color: var(--success);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .verified-stamp .stamp-text::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+
+    .verified-stamp .stamp-date {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* ERROR */
+    .result-error {
+      background: var(--error-bg);
+      border-radius: 16px;
+      border: 1px solid var(--error-border);
+      padding: 28px 24px;
+      text-align: center;
+    }
+
+    .error-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: rgba(155,35,53,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+
+    .error-icon svg {
+      width: 24px;
+      height: 24px;
+      fill: none;
+      stroke: var(--error);
+      stroke-width: 2;
+      stroke-linecap: round;
+    }
+
+    .result-error h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--error);
+      margin-bottom: 6px;
+    }
+
+    .result-error p {
+      font-size: 13px;
+      color: #7A3040;
+      line-height: 1.6;
+    }
+
+    /* ===== INFO CARDS ===== */
+    .info-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .info-card {
+      background: #ffffff;
+      border-radius: 14px;
+      border: 1px solid rgba(201,168,76,0.15);
+      padding: 18px 16px;
+      text-align: center;
+    }
+
+    .info-card .ic-num {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--navy);
+      line-height: 1;
+    }
+
+    .info-card .ic-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    .info-card .ic-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 10px;
+    }
+
+    .info-card .ic-icon svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: var(--gold);
+      stroke-width: 1.8;
+    }
+
+    /* ===== FOOTER ===== */
+    .site-footer {
+      background: var(--navy);
+      padding: 16px 24px;
+      text-align: center;
+      border-top: 1px solid rgba(201,168,76,0.15);
+    }
+
+    .site-footer p {
+      font-size: 12px;
+      color: rgba(255,255,255,0.35);
+    }
+
+    .site-footer span {
+      color: var(--gold);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 520px) {
+      .search-card { padding: 24px 20px 20px; border-radius: 16px; }
+      .data-grid { grid-template-columns: 1fr; }
+      .info-row { grid-template-columns: 1fr; }
+      .header-inner { gap: 14px; }
+      .logo-wrap { width: 56px; height: 56px; }
+      .site-header h1 { font-size: 18px; }
+    }
+
+    /* ===== تحسين للوجو ===== */
+/* تصميم المربع الأبيض ثلاثي الأبعاد للوجو */
+.logo-box-3d {
+    width: 200px;
+    height: 200px;
+    background: #ffffff;
+    padding: 0; /* أزلنا الـ padding هنا لأننا حددنا حجم الـ logo-wrap يدوياً */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 24px; /* زوايا أكثر نعومة للحجم الكبير */
+    box-shadow: 
+        0 15px 35px rgba(0, 0, 0, 0.2), 
+        0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.logo-box-3d:hover {
+    transform: translateY(-5px); /* حركة تفاعلية عند تمرير الماوس */
+}
+
+.logo-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* يحافظ على أبعاد اللوجو الأصلية دون تشويه */
+    padding: 15px; /* مسافة داخلية لكي لا يلمس اللوجو الإطار الذهبي */
+}
+
+/* تحسينات للنصوص في الهيدر */
+.header-inner {
+    display: flex;
+    align-items: center;
+    gap: 25px; /* مسافة بين المربع والنصوص */
+}
+
+.header-text h1 {
+    font-size: 1.8rem;
+    margin: 0;
+    color: #ffffff;
+}
+
+.sub-h1 {
+    font-size: 1.2rem;
+    color: #C9A84C; /* لون ذهبي/برونزي */
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+.header-badge span {
+    background: rgba(201, 168, 76, 0.2);
+    color: #C9A84C;
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    border: 1px solid #C9A84C;
+}
+
+
+
+  </style>
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- HEADER -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo-box-3d">
+      <div class="logo-wrap">
+        <img
+          src="https://drive.google.com/thumbnail?sz=w500&id=1u0GDe3ZlZTns53mMBVa8mLzz6yIk4m8l"
+          alt="شعار شركة شلفا"
+          onerror="this.style.display='none'; this.parentElement.innerHTML='<svg viewBox=\'0 0 24 24\' width=\'40\' height=\'40\' fill=\'none\' stroke=\'%23C9A84C\' stroke-width=\'1.5\'><rect x=\'3\' y=\'3\' width=\'18\' height=\'18\' rx=\'3\'/><path d=\'M8 12h8M12 8v8\'/></svg>';"
+        >
+      </div>
+    </div>
+
+    <div class="header-text">
+      <div class="header-badge"><span>منصة معتمدة</span></div>
+      <h1>مركز تدريب شركة شلفا</h1>
+      <h2 class="sub-h1">إدارة التطوير المؤسسي</h2>
+      <p>التحقق الإلكتروني الرسمي من الشهادات</p>
+    </div>
+  </div>
+</header>
+
+  <!-- MAIN -->
+  <main class="main-content">
+    <div class="content-center">
+
+      <!-- SEARCH CARD -->
+      <div class="search-card">
+        <div class="card-icon-wrap">
+          <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg>
+        </div>
+        <h2>التحقق من صحة الشهادة</h2>
+        <p class="subtitle">أدخل رقم الشهادة للتحقق من صحتها واستعراض بيانات المتدرب والدورة المعتمدة</p>
+
+        <div class="input-group">
+          <label class="input-label" for="certId">رقم الشهادة</label>
+          <div class="input-wrap">
+            <svg viewBox="0 0 24 24"><path d="M7 20h10M12 4v16M8 8h8M9 12h6"/></svg>
+            <input type="text" id="certId" placeholder="مثال: 1001" autocomplete="off">
+          </div>
+        </div>
+
+        <button class="btn-search" onclick="search()">
+          <span class="btn-inner">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            بحث والتحقق
+          </span>
+        </button>
+
+        <!-- LOADING -->
+        <div class="loading-state" id="loadingState">
+          <div class="spinner"></div>
+          <p>جارٍ التحقق من قاعدة البيانات...</p>
+        </div>
+      </div>
+
+      <!-- RESULT -->
+      <div class="result-section" id="resultSection">
+
+        <!-- SUCCESS -->
+        <div class="result-success" id="resultSuccess" style="display:none;">
+          <div class="result-header">
+            <div class="result-header-icon">
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="result-header-text">
+              <h3>شهادة معتمدة وموثقة</h3>
+              <p>تم التحقق من صحة هذه الشهادة بنجاح</p>
+            </div>
+          </div>
+          <div class="result-body">
+            <div class="cert-id-badge">
+              <span class="label">رقم الشهادة</span>
+              <span class="value" id="resId">#1001</span>
+            </div>
+            <div class="data-grid">
+              <div class="data-item full">
+                <div class="di-label">
+                  <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  اسم المتدرب
+                </div>
+                <div class="di-value" id="resName">—</div>
+              </div>
+              <div class="data-item full">
+                <div class="di-label">
+                  <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                  الدورة التدريبية
+                </div>
+                <div class="di-value" id="resCourse">—</div>
+              </div>
+              <div class="data-item">
+                <div class="di-label">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  تاريخ الإصدار
+                </div>
+                <div class="di-value" id="resDate">—</div>
+              </div>
+              <div class="data-item">
+                <div class="di-label">
+                  <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                  حالة الشهادة
+                </div>
+                <div class="di-value" style="color: var(--success);">معتمدة ✓</div>
+              </div>
+            </div>
+            <div class="verified-stamp">
+              <span class="stamp-text">تم التحقق إلكترونياً</span>
+              <span class="stamp-date" id="verifyDate">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ERROR -->
+        <div class="result-error" id="resultError" style="display:none;">
+          <div class="error-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          </div>
+          <h3>لم يتم العثور على الشهادة</h3>
+          <p>رقم الشهادة الذي أدخلته غير مسجل في قاعدة البيانات.<br>يُرجى التأكد من الرقم والمحاولة مجدداً.</p>
+        </div>
+
+      </div>
+
+      <!-- INFO ROW -->
+      <div class="info-row">
+        <div class="info-card">
+          <div class="ic-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="ic-num">100%</div>
+          <div class="ic-label">موثوقية النظام</div>
+        </div>
+        <div class="info-card">
+          <div class="ic-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="ic-num">فوري</div>
+          <div class="ic-label">وقت الاستجابة</div>
+        </div>
+        <div class="info-card">
+          <div class="ic-icon">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <div class="ic-num">آمن</div>
+          <div class="ic-label">آمان البيانات </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <p>© 2026 إدارة التطوير المؤسسي &nbsp;|&nbsp; جميع الشهادات <span>معتمدة رسمياً</span></p>
+  </footer>
+
+</div>
+
+<script>
+  // هذه القيمة تأتي من السيرفر مباشرة
+  var initialId = "<?= certIdFromUrl ?>";
+
+  window.onload = function() {
+    if (initialId && initialId !== "") {
+      document.getElementById('certId').value = initialId;
+      search(); // تنفيذ البحث فوراً
+    }
+  };
+
+  function search() {
+    var id = document.getElementById('certId').value.trim();
+    if (!id) {
+      document.getElementById('certId').focus();
+      document.getElementById('certId').style.borderColor = '#E24B4A';
+      setTimeout(() => { document.getElementById('certId').style.borderColor = ''; }, 1500);
+      return;
+    }
+
+    document.getElementById('loadingState').classList.add('visible');
+    document.getElementById('resultSection').classList.remove('visible');
+    document.getElementById('resultSuccess').style.display = 'none';
+    document.getElementById('resultError').style.display = 'none';
+
+    google.script.run
+      .withSuccessHandler(showResult)
+      .withFailureHandler(showError)
+      .getCertificateData(id);
+  }
+
+  function showResult(data) {
+    document.getElementById('loadingState').classList.remove('visible');
+    document.getElementById('resultSection').classList.add('visible');
+
+    if (data) {
+      document.getElementById('resId').innerText = '#' + data.id;
+      document.getElementById('resName').innerText = data.name;
+      document.getElementById('resCourse').innerText = data.course;
+      document.getElementById('resDate').innerText = data.date;
+      document.getElementById('verifyDate').innerText = 'تاريخ التحقق: ' + new Date().toLocaleDateString('ar-SA');
+      document.getElementById('resultSuccess').style.display = 'block';
+      document.getElementById('resultError').style.display = 'none';
+    } else {
+      document.getElementById('resultSuccess').style.display = 'none';
+      document.getElementById('resultError').style.display = 'block';
+    }
+  }
+
+  function showError(err) {
+    document.getElementById('loadingState').classList.remove('visible');
+    document.getElementById('resultSection').classList.add('visible');
+    document.getElementById('resultSuccess').style.display = 'none';
+    document.getElementById('resultError').style.display = 'block';
+  }
+
+  document.getElementById('certId').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') search();
+  });
+</script>
+
+</body>
+</html>
