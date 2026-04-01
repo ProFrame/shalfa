@@ -921,25 +921,30 @@ function search() {
     var scriptUrl = "https://script.google.com/macros/s/AKfycbz0NsTkChx_E0L_BRiHTnD-J2XENKyFezghCAOzz-9tMbd6Wk5xCYHdT9tat_GGshfSvA/exec";
 
     // 4. تنفيذ طلب الـ Fetch مع إعدادات التوجيه
-    fetch(scriptUrl + "?id=" + encodeURIComponent(id), {
-        method: 'GET',
-        mode: 'cors', // السماح بتبادل الموارد بين النطاقات
-        redirect: 'follow' // ضروري جداً لأن جوجل يقوم بعمل Redirect للملف
-    })
+ // تنفيذ طلب الـ Fetch بطريقة "Simple Request"
+    fetch(scriptUrl + "?id=" + encodeURIComponent(id))
     .then(response => {
-        // إذا كان الاستجابة من نوع opaque (بسبب سياسة جوجل) قد نحتاج للتعامل معها
-        return response.json();
+        // جوجل يقوم بعمل Redirect، الـ fetch سيتعامل معه تلقائياً
+        // إذا فشل الـ response.json() سنقوم بقراءته كنص أولاً
+        return response.text(); 
     })
-    .then(data => {
-        console.log("Data Received:", data);
-        document.getElementById('loadingState').classList.remove('visible');
-        showResult(data); 
+    .then(text => {
+        try {
+            const data = JSON.parse(text); // تحويل النص إلى كائن JSON يدوياً
+            console.log("Data Received Successfully:", data);
+            document.getElementById('loadingState').classList.remove('visible');
+            showResult(data);
+        } catch (e) {
+            console.error("Parsing error:", text);
+            throw new Error("Invalid JSON response");
+        }
     })
     .catch(err => {
         console.error("Fetch Error Details:", err);
         document.getElementById('loadingState').classList.remove('visible');
         showError(err);
     });
+  
 }
 
 
