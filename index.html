@@ -883,21 +883,26 @@
 </div>
 
 <script>
-  // هذه القيمة تأتي من السيرفر مباشرة
-  var initialId = "<?= certIdFromUrl ?>";
+// 1. طريقة قراءة الـ ID من الرابط في المواقع العادية (GitHub)
+  function getParam(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+  }
 
+  // 2. التنفيذ عند تحميل الصفحة
   window.onload = function() {
-    if (initialId && initialId !== "") {
-      document.getElementById('certId').value = initialId;
-      search(); // تنفيذ البحث فوراً
+    const idFromUrl = getParam('id'); // سيقرأ الرقم من ?id=1001
+    
+    if (idFromUrl) {
+      document.getElementById('certId').value = idFromUrl;
+      search(); // تنفيذ البحث تلقائياً
     }
   };
 
-
-function search() {
+  // 3. دالة البحث المحدثة (تأكد من وجود الرابط الصحيح)
+  function search() {
     var id = document.getElementById('certId').value.trim();
     
-    // 1. التحقق من الإدخال (Validation) كما في كودك السابق
     if (!id) {
         document.getElementById('certId').focus();
         document.getElementById('certId').style.borderColor = '#E24B4A';
@@ -905,29 +910,29 @@ function search() {
         return;
     }
 
-    // 2. تجهيز واجهة المستخدم (Loading State)
     document.getElementById('loadingState').classList.add('visible');
     document.getElementById('resultSection').classList.remove('visible');
     document.getElementById('resultSuccess').style.display = 'none';
     document.getElementById('resultError').style.display = 'none';
 
-    // 3. رابط الـ Web App الخاص بك (المحدث)
+    // رابط الـ Web App الخاص بك
     var scriptUrl = "https://script.google.com/macros/s/AKfycbz0NsTkChx_E0L_BRiHTnD-J2XENKyFezghCAOzz-9tMbd6Wk5xCYHdT9tat_GGshfSvA/exec";
 
-    // 4. الاتصال بجوجل سكريبت عبر Fetch API
     fetch(scriptUrl + "?id=" + id)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
         .then(data => {
-            // إخفاء علامة التحميل
             document.getElementById('loadingState').classList.remove('visible');
-            // استدعاء دالة عرض النتائج التي برمجناها سابقاً
             showResult(data); 
         })
         .catch(err => {
+            console.error('Error:', err);
             document.getElementById('loadingState').classList.remove('visible');
             showError(err);
         });
-}
+  }
 
 
   
