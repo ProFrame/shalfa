@@ -900,9 +900,10 @@
   };
 
   // 3. دالة البحث المحدثة (تأكد من وجود الرابط الصحيح)
-  function search() {
+function search() {
     var id = document.getElementById('certId').value.trim();
     
+    // 1. التحقق من الإدخال
     if (!id) {
         document.getElementById('certId').focus();
         document.getElementById('certId').style.borderColor = '#E24B4A';
@@ -910,36 +911,36 @@
         return;
     }
 
+    // 2. تهيئة الواجهة
     document.getElementById('loadingState').classList.add('visible');
     document.getElementById('resultSection').classList.remove('visible');
     document.getElementById('resultSuccess').style.display = 'none';
     document.getElementById('resultError').style.display = 'none';
 
-  // رابط الـ Web App الخاص بك
+    // 3. رابط السكريبت الخاص بك
     var scriptUrl = "https://script.google.com/macros/s/AKfycbz0NsTkChx_E0L_BRiHTnD-J2XENKyFezghCAOzz-9tMbd6Wk5xCYHdT9tat_GGshfSvA/exec";
 
-    fetch(scriptUrl + "?id=" + id)
-        .then(response => {
-            if (!response.ok) throw new Error('Network response was not ok');
-            return response.json();
-        })
-        .then(data => {
-            console.log("Data received:", data); // تأكد من رؤية البيانات في الكونسول
-            document.getElementById('loadingState').classList.remove('visible');
-            
-            // تحقق إذا كانت البيانات المستلمة null أو فارغة
-            if (!data || data === null) {
-                showResult(null); // سيعرض "لم يتم العثور على الشهادة"
-            } else {
-                showResult(data); 
-            }
-        })
-        .catch(err => {
-            console.error('Fetch error:', err);
-            document.getElementById('loadingState').classList.remove('visible');
-            showError(err);
-        });
-  }
+    // 4. تنفيذ طلب الـ Fetch مع إعدادات التوجيه
+    fetch(scriptUrl + "?id=" + encodeURIComponent(id), {
+        method: 'GET',
+        mode: 'cors', // السماح بتبادل الموارد بين النطاقات
+        redirect: 'follow' // ضروري جداً لأن جوجل يقوم بعمل Redirect للملف
+    })
+    .then(response => {
+        // إذا كان الاستجابة من نوع opaque (بسبب سياسة جوجل) قد نحتاج للتعامل معها
+        return response.json();
+    })
+    .then(data => {
+        console.log("Data Received:", data);
+        document.getElementById('loadingState').classList.remove('visible');
+        showResult(data); 
+    })
+    .catch(err => {
+        console.error("Fetch Error Details:", err);
+        document.getElementById('loadingState').classList.remove('visible');
+        showError(err);
+    });
+}
 
 
   
