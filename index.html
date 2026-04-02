@@ -656,7 +656,16 @@
       .data-grid { grid-template-columns: 1fr; }
       .info-row { grid-template-columns: 1fr; }
       .header-inner { gap: 14px; }
-      .logo-wrap { width: 56px; height: 56px; }
+        .logo-wrap { 
+    width: 120px; 
+    height: 120px; 
+  }
+
+  .logo-box-3d {
+    width: 140px;
+    height: 140px;
+  }
+      
       .site-header h1 { font-size: 18px; }
     }
 
@@ -717,7 +726,17 @@
 }
 
 
+.logo-box-3d {
+    width: clamp(120px, 20vw, 200px);
+    height: clamp(120px, 20vw, 200px);
+}
 
+.logo-wrap {
+    width: 100%;
+    height: 100%;
+}
+
+    
   </style>
 </head>
 <body>
